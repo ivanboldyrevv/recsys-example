@@ -12,6 +12,17 @@ class Service:
         self.broker_client: BrokerClient = broker_client
         self.key_value_storage: KeyValueStorage = key_value_storage
 
+    def fetch_items(self):
+        """
+            This method, logically, should be located in another service,
+            for example, in the service for issuing things, but since this
+            is an educational project, it is located here
+        """
+        items = [Recommendation(iid=i.item_id,
+                                description=i.description,
+                                image_url=i.image_url) for i in ItemModel.select()]
+        return items
+
     def fetch_recommendations(self, item_sequence: UserItemSequence) -> UserItemRecommendation:
         """
             Method for waking up a model via a broker.

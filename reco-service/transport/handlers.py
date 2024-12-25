@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 
+from typing import List
 from .request import UserItemSequence
-from .response import UserItemRecommendation
+from .response import UserItemRecommendation, Recommendation
 
 from service import Service
 from broker import KafkaWrapper, KafkaWrapperConfig
@@ -29,6 +30,12 @@ def fetch_service(broker_client: KafkaWrapper = Depends(broker_client),
 def fetch_personal_recommendation(item_sequence: UserItemSequence,
                                   service: Service = Depends(fetch_service)) -> UserItemRecommendation:
     data = service.fetch_recommendations(item_sequence)
+    return data
+
+
+@recommendation.get("/items")
+def fetch_items(service: Service = Depends(fetch_service)) -> List[Recommendation]:
+    data = service.fetch_items()
     return data
 
 
