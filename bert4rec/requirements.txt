@@ -1,0 +1,10 @@
+numpy==1.26.4
+ --extra-index-url https://download.pytorch.org/whl/cu102
+torch==1.12.1+cu102
+torchvision==0.13.1+cu102
+torchaudio==0.12.1
+recbole==1.2.0
+ray[tune]==2.40.0
+kmeans-pytorch==0.3
+kafka-python==2.0.2
+redis==5.2.1
