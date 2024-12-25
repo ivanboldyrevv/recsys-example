@@ -1,0 +1,20 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "user-item-sequence",
+    "type": "object",
+    "properties": {
+      "uid": {"type": "string"},
+      "item_sequence": {
+          "type": "array",
+          "items": {
+              "type": "object",
+              "properties": {
+                  "iid": {"type": "string"},
+                  "description": {"type": "string"}
+              },
+              "required": ["iid", "description"]
+          }
+      }
+    },
+    "required": ["uid", "item_sequence"]
+}
