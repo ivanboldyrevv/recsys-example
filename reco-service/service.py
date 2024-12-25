@@ -37,7 +37,9 @@ class Service:
         for raw_iid in raw_item_ids:
             from_sql = ItemModel.select().where(ItemModel.item_id == raw_iid.decode()).get()
             r.recommendations.append(
-                Recommendation(iid=from_sql.item_id, description=from_sql.description)
+                Recommendation(iid=from_sql.item_id,
+                               description=from_sql.description,
+                               image_url=from_sql.image_url)
             )
 
         return r

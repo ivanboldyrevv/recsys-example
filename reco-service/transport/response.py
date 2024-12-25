@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 class Recommendation(BaseModel):
     iid: str
     description: str
+    image_url: str
 
 
 class UserItemRecommendation(BaseModel):

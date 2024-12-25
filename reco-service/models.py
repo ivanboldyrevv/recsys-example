@@ -4,6 +4,7 @@ from peewee import Model, CharField, PostgresqlDatabase
 class ItemModel(Model):
     item_id = CharField(primary_key=True)
     description = CharField()
+    image_url = CharField()
 
     class Meta:
         table_name = "items"

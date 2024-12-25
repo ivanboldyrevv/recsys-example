@@ -28,7 +28,6 @@ def fetch_service(broker_client: KafkaWrapper = Depends(broker_client),
 @recommendation.post("/personal")
 def fetch_personal_recommendation(item_sequence: UserItemSequence,
                                   service: Service = Depends(fetch_service)) -> UserItemRecommendation:
-    print(item_sequence)
     data = service.fetch_recommendations(item_sequence)
     return data
 
