@@ -6,23 +6,33 @@ from .response import UserItemRecommendation, Recommendation
 
 from service import Service
 from broker import KafkaWrapper, KafkaWrapperConfig
-from key_value_storage import RedisStorage
+from kv_storage import RedisStorage
+
+from settings import get_settings, Settings
 
 
 recommendation = APIRouter()
 
 
-def key_value_storage():
-    return RedisStorage()
+def settings():
+    settings = get_settings()
+    return settings
 
 
-def broker_client():
-    return KafkaWrapper(config=KafkaWrapperConfig(bootstrap_server="localhost:29092",
-                                                  schema_registry_url="http://localhost:8085"))
+def kv_storage(settings: Settings = Depends(settings)):
+    return RedisStorage(host=settings.redis_host,
+                        port=settings.redis_port,
+                        db=settings.redis_db)
+
+
+def broker_client(settings: Settings = Depends(settings)):
+    config = {"bootstrap_server": f"{settings.broker_host}:{settings.broker_port}",
+              "schema_registry_url": f"http://{settings.schemaregisty_host}:{settings.schemaregistry_port}"}
+    return KafkaWrapper(config=KafkaWrapperConfig(**config))
 
 
 def fetch_service(broker_client: KafkaWrapper = Depends(broker_client),
-                  key_value_storage: RedisStorage = Depends(key_value_storage)):
+                  key_value_storage: RedisStorage = Depends(kv_storage)):
     return Service(broker_client=broker_client, key_value_storage=key_value_storage)
 
 

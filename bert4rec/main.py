@@ -1,7 +1,9 @@
+import logging
+
+from settings import get_settings
 from builder import RecommendationBuilder
 from nosql import RedisStorage
 from recbole.quick_start import load_data_and_model
-
 from dto import Item, UserItemSequence
 
 from confluent_kafka import Consumer
@@ -28,11 +30,14 @@ def read_schema(path):
 
 
 def main(topic, recommendation_builder, nosql):
+    logger = logging.getLogger("model logger")
+    logging.basicConfig(level=logging.INFO)
+
     schema_str = read_schema("./json_schemas/item_sequence.json")
     json_deserializer = JSONDeserializer(schema_str,
                                          from_dict=to_dict)
 
-    consumer = Consumer({"bootstrap.servers": "localhost:29092",
+    consumer = Consumer({"bootstrap.servers": "kafka1:9092",
                          "group.id": "mygroup",
                          "auto.offset.reset": "earliest"})
     consumer.subscribe([topic])
@@ -43,14 +48,19 @@ def main(topic, recommendation_builder, nosql):
             if msg is None:
                 continue
 
-            sequence = json_deserializer(msg.value(), SerializationContext(msg.topic(), MessageField.VALUE))
+            try:
+                sequence = json_deserializer(msg.value(), SerializationContext(msg.topic(), MessageField.VALUE))
+            except Exception:
+                continue
+
             raw_sequence = [item.iid for item in sequence.item_sequence]
 
             try:
                 p = recommendation_builder.build_recos(raw_sequence, 30)
                 nosql.set(sequence.uid, [item.iid for item in p])
-            except ValueError:
-                pass
+                logger.info(f"predictions FOR UID: {sequence.uid} successfully delivered!")
+            except Exception as e:
+                logger.warning(f"an error occurred: {e}")
 
         except KeyboardInterrupt:
             break
@@ -59,12 +69,14 @@ def main(topic, recommendation_builder, nosql):
 
 
 if __name__ == "__main__":
-    _, model, dataset, *_ = load_data_and_model(model_file="./saved/BERT4Rec-Dec-17-2024_15-29-26.pth")
+    settings = get_settings()
+
+    _, model, dataset, *_ = load_data_and_model(model_file="./saved/BERT4Rec-Dec-29-2024_20-09-40.pth")
     rbuilder = RecommendationBuilder(dataset=dataset,
                                      model=model)
 
-    redis = RedisStorage({"host": "localhost",
-                          "port": 6379,
-                          "db": 0})
+    redis = RedisStorage({"host": settings.redis_host,
+                          "port": settings.redis_port,
+                          "db": settings.redis_db})
 
-    main("t1", rbuilder, redis)
+    main("item-sequences", rbuilder, redis)

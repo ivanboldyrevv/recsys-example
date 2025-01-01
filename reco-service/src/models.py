@@ -11,5 +11,5 @@ class ItemModel(Model):
         database = PostgresqlDatabase("postgres_db",
                                       user="postgres_user",
                                       password="postgres_password",
-                                      host="localhost",
-                                      port="5430")
+                                      host="postgres",
+                                      port="5432")

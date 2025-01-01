@@ -22,8 +22,8 @@ class MemcachedStorage(KeyValueStorage):
 
 
 class RedisStorage(KeyValueStorage):
-    def __init__(self, host="localhost", port=6379):
-        self.client = redis.Redis(host=host, port=port)
+    def __init__(self, host, port, db):
+        self.client = redis.Redis(host=host, port=port, db=db)
 
     def set(self, key, value):
         return self.client.set(key, value)

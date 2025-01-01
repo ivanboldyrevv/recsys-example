@@ -1,0 +1,7 @@
+requests
+fastapi[standard]
+jsonschema
+peewee
+psycopg2-binary
+confluent-kafka==2.6.1
+redis==5.2.1

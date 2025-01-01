@@ -1,7 +1,8 @@
 bert4rec/log
-bert4rec/log_tensorboard
-bert4rec/raw_data
-bert4rec/saved
+bert4rec/src/log
+bert4rec/src/log_tensorboard
+bert4rec/src/raw_data
+bert4rec/src/saved
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -196,4 +197,4 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-.pgdata
+/pgdata

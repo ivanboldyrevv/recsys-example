@@ -1,5 +1,5 @@
 from broker import BrokerClient
-from key_value_storage import KeyValueStorage
+from kv_storage import KeyValueStorage
 
 from transport.request import UserItemSequence
 from transport.response import UserItemRecommendation, Recommendation
@@ -34,7 +34,7 @@ class Service:
         """
         schema = self.read_schema_from_file("json_schemas/item_sequence_json.json")
 
-        self.broker_client.produce(topic="t1",
+        self.broker_client.produce(topic="item-sequences",
                                    value=item_sequence.model_dump(),
                                    schema=schema)
 

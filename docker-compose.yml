@@ -1,6 +1,7 @@
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.2
+    container_name: recsys-zookeeper
     restart: always
     environment:
       ZOOKEEPER_SERVER_ID: 1
@@ -12,6 +13,7 @@ services:
                   
   kafka1:
     image: confluentinc/cp-enterprise-kafka:5.1.2
+    container_name: recsys-kafka1
     depends_on:
       - zookeeper
     ports:
@@ -36,6 +38,7 @@ services:
       
   schemaregistry:
     image: confluentinc/cp-schema-registry:6.2.1
+    container_name: recsys-schemaregistry
     restart: always
     depends_on:
       - zookeeper
@@ -48,14 +51,14 @@ services:
   
   redis:
     image: redis:latest
-    container_name: redis
+    container_name: recsys-redis
     restart: unless-stopped
     ports:
         - "6379:6379"
   
   postgres:
     image: postgres:latest
-    container_name: postgres_container
+    container_name: recsys-postgres
     environment:
       POSTGRES_USER: postgres_user
       POSTGRES_PASSWORD: postgres_password
@@ -89,7 +92,74 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
+  
+  reco-service:
+    build: /reco-service
+    container_name: recsys-recommendation-service
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres_user
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: postgres_db
+
+      BROKER_HOST: kafka1
+      BROKER_PORT: 9092
+      BROKER_TOPIC: item_sequence
+
+      SCHEMAREGISTRY_HOST: schemaregistry
+      SCHEMAREGISTRY_PORT: 8085
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+    ports:
+      - 8000:8000
+    depends_on:
+      - redis
+      - kafka1
+      - schemaregistry
+    volumes:
+      - ./reco-service/src:/app
+  
+  model:
+    build: /bert4rec
+    container_name: recsys-model
+    environment:
+      BROKER_HOST: kafka1
+      BROKER_PORT: 9092
+      BROKER_TOPIC: item_sequence
+
+      SCHEMAREGISTRY_HOST: schemaregistry
+      SCHEMAREGISTRY_PORT: 8085
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+    ports:
+      - 8200:8000
+    depends_on:
+      - reco-service
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - ./bert4rec:/app
+  
+  frontend:
+    build: /frontend/my-app
+    container_name: recsys-frontend
+    ports:
+      - 80:80
+    environment:
+      NODE_ENV: production
 
 volumes:
   pgdata:
     driver: local
+  bert4rec:
+  reco-service:
