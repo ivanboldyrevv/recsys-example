@@ -71,7 +71,7 @@ def main(topic, recommendation_builder, nosql):
 if __name__ == "__main__":
     settings = get_settings()
 
-    _, model, dataset, *_ = load_data_and_model(model_file="./saved/BERT4Rec-Dec-29-2024_20-09-40.pth")
+    _, model, dataset, *_ = load_data_and_model(model_file=f"./saved/{settings.model_name}.pth")
     rbuilder = RecommendationBuilder(dataset=dataset,
                                      model=model)
 

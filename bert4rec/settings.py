@@ -10,6 +10,8 @@ logger = logging.getLogger("settings")
 
 @dataclass
 class Settings:
+    model_name: str = os.getenv("MODEL_NAME")
+
     broker_host: str = os.getenv("BROKER_HOST")
     broker_port: int = os.getenv("BROKER_PORT")
     topic: str = os.getenv("BROKER_TOPIC")

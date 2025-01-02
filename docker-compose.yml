@@ -1,7 +1,7 @@
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.2
-    container_name: recsys-zookeeper
+    container_name: recsys.zookeeper
     restart: always
     environment:
       ZOOKEEPER_SERVER_ID: 1
@@ -13,7 +13,7 @@ services:
                   
   kafka1:
     image: confluentinc/cp-enterprise-kafka:5.1.2
-    container_name: recsys-kafka1
+    container_name: recsys.kafka1
     depends_on:
       - zookeeper
     ports:
@@ -38,7 +38,7 @@ services:
       
   schemaregistry:
     image: confluentinc/cp-schema-registry:6.2.1
-    container_name: recsys-schemaregistry
+    container_name: recsys.schemaregistry
     restart: always
     depends_on:
       - zookeeper
@@ -58,7 +58,7 @@ services:
   
   postgres:
     image: postgres:latest
-    container_name: recsys-postgres
+    container_name: recsys.postgres
     environment:
       POSTGRES_USER: postgres_user
       POSTGRES_PASSWORD: postgres_password
@@ -95,7 +95,7 @@ services:
   
   reco-service:
     build: /reco-service
-    container_name: recsys-recommendation-service
+    container_name: recsys.recommendation-service
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
@@ -124,8 +124,10 @@ services:
   
   model:
     build: /bert4rec
-    container_name: recsys-model
+    container_name: recsys.model
     environment:
+      MODEL_NAME: BERT4Rec-Dec-29-2024_20-09-40
+
       BROKER_HOST: kafka1
       BROKER_PORT: 9092
       BROKER_TOPIC: item_sequence
@@ -152,7 +154,7 @@ services:
   
   frontend:
     build: /frontend/my-app
-    container_name: recsys-frontend
+    container_name: recsys.frontend
     ports:
       - 80:80
     environment:
