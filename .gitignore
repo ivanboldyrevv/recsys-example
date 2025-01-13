@@ -4,6 +4,8 @@ bert4rec/src/log_tensorboard
 bert4rec/src/raw_data
 bert4rec/src/saved
 
+pgdata/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -176,8 +178,8 @@ cython_debug/
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/pgdata
-/node_modules
+
+frontend/node_modules/
 /.pnp
 .pnp.js
 

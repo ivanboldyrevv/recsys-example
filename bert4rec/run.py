@@ -18,11 +18,12 @@ if __name__ == "__main__":
         "load_col": {"inter": ["user_id", "item_id", "timestamp"]},
         "neg_sampling": None,
         "epochs": 50,
+        "learning_rate": 0.001,
         "eval_args": {
-            "split": {"RS": [9, 0, 1]},
+            "split": {"RS": [9, 1, 0]},
             "group_by": "user",
             "order": "TO",
-            "mode": "full"}
+            "mode": "full"},
         }
 
     config = Config(model="BERT4Rec", dataset="data", config_dict=params)
@@ -42,12 +43,9 @@ if __name__ == "__main__":
 
     train_data, valid_data, test_data = data_preparation(config, dataset)
 
-    # model loading and initialization
     model = BERT4Rec(config, train_data.dataset).to(config['device'])
     logger.info(model)
 
-    # trainer loading and initialization
     trainer = Trainer(config, model)
 
-    # model training
-    best_valid_score, best_valid_result = trainer.fit(train_data)
+    best_valid_score, best_valid_result = trainer.fit(train_data, valid_data)

@@ -126,7 +126,9 @@ services:
     build: /bert4rec
     container_name: recsys.model
     environment:
-      MODEL_NAME: BERT4Rec-Dec-29-2024_20-09-40
+      # MODEL_NAME: BERT4Rec-Dec-29-2024_20-09-40
+      # MODEL_NAME: BERT4Rec-Jan-13-2025_19-40-33
+      MODEL_NAME: BERT4Rec-Jan-13-2025_16-19-54
 
       BROKER_HOST: kafka1
       BROKER_PORT: 9092
