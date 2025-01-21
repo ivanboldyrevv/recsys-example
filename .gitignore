@@ -1,10 +1,13 @@
-bert4rec/log
-bert4rec/src/log
-bert4rec/src/log_tensorboard
-bert4rec/src/raw_data
-bert4rec/src/saved
+# postgres utils
+pgdata
 
-pgdata/
+# model serving + dataset + train artifacts
+bert4rec/log
+bert4rec/log_tensorboard
+bert4rec/saved
+bert4rec/dataset
+bert4rec/src
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -179,6 +182,7 @@ cython_debug/
 
 # dependencies
 
+.bert4rec/dataset/
 frontend/node_modules/
 /.pnp
 .pnp.js
