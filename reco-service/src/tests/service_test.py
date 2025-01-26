@@ -5,31 +5,9 @@ from peewee import PostgresqlDatabase
 from models import ItemModel
 
 from service import Service
-from kv_storage import KeyValueStorage
-from broker import BrokerClient
+from .mock_depends import KeyValueStorageMock, BrokerMock
 
 from transport.request import Item, UserItemSequence
-
-
-class RedisMock(KeyValueStorage):
-    """
-        This is mock for redis storage.
-        Method get() returns a list consisting of two
-        encoded uid's cause' original get() method returns encoded str.
-    """
-    def set(self):
-        pass
-
-    def get(self, user_id: str):
-        return ["id_1".encode(), "id_2".encode()]
-
-    def delete(self, user_id: str):
-        pass
-
-
-class KafkaMock(BrokerClient):
-    def produce(self, topic, value, schema):
-        return super().produce(topic, value, schema)
 
 
 class TestService:
@@ -74,8 +52,8 @@ class TestService:
             def read_schema_from_file(self, path: str) -> None:
                 return
 
-        mock_kafka = KafkaMock()
-        mock_redis = RedisMock()
+        mock_kafka = BrokerMock()
+        mock_redis = KeyValueStorageMock()
 
         service = MockedService(mock_kafka, mock_redis)
 
