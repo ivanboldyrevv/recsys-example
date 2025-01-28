@@ -2,7 +2,7 @@ import pytest
 import logging
 
 from typing import Optional
-from broker import KafkaWrapper
+from broker import KafkaRelay
 
 from confluent_kafka import Consumer
 from confluent_kafka.serialization import SerializationContext, MessageField
@@ -49,11 +49,11 @@ class TestKafkaProducer:
                 pytest.fail(f"failed to create topic {topic}: {e}")
 
     @pytest.fixture(scope="class")
-    def kafka_client(self) -> KafkaWrapper:
-        return KafkaWrapper({"bootstrap.servers": "localhost:29092",
-                             "schema.registry.url": "http://localhost:8085"})
+    def kafka_client(self) -> KafkaRelay:
+        return KafkaRelay({"bootstrap.servers": "localhost:29092",
+                           "schema.registry.url": "http://localhost:8085"})
 
-    def test_produce(self, kafka_client: KafkaWrapper) -> None:
+    def test_produce(self, kafka_client: KafkaRelay) -> None:
         test_schema = sc_client.get_schema(self.schema_id).schema_str
         test_value = {"id": 1, "description": "test"}
 

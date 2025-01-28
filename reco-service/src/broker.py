@@ -1,28 +1,34 @@
+import logging
+
 from uuid import uuid4
 from typing import Dict, Any
 from abc import ABC, abstractmethod
 
-from confluent_kafka import Producer
+from confluent_kafka import Producer, KafkaError, Message as KafkaMessage
 from confluent_kafka.serialization import StringSerializer, SerializationContext, MessageField
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.json_schema import JSONSerializer
 
 
+logger = logging.getLogger(__name__)
+
+
 class BrokerClient(ABC):
     """
-        Интерфейс для определения работы брокера.
+        An interface that must be implemented by objects
+        that are broker producers.
     """
 
     @abstractmethod
-    def produce(self, topic: str, value: Dict[str, Any], schema: str) -> None:
+    def produce(self, topic: str, value: Dict[str, Any], subject_name: str) -> None:
         pass
 
 
-class KafkaWrapper(BrokerClient):
+class KafkaRelay(BrokerClient):
     def __init__(self, config: Dict[str, str]):
         """
             Interface of an object that is designed
-            to pass messages to a Kafka topic.
+            to produce messages to a Kafka topic.
             Takes the schema by subject_name, serializes
             the data and passes it to the topic.
 
@@ -33,14 +39,10 @@ class KafkaWrapper(BrokerClient):
         self.config = config
 
     def produce(self, topic: str, value: Dict[str, Any], subject_name: str) -> None:
-        sc_client = SchemaRegistryClient({"url": self.config["schema.registry.url"]})
-        latest_ver = sc_client.get_versions(subject_name)[-1]
-        response = sc_client.get_version(subject_name, latest_ver)
-
-        schema = response.schema
+        schema = self.fetch_schema(subject_name=subject_name)
 
         string_serializer = StringSerializer()
-        json_serializer = JSONSerializer(schema.schema_str, sc_client)
+        json_serializer = JSONSerializer(schema.schema_str, self.fetch_schema_registry())
 
         producer = Producer({"bootstrap.servers": self.config["bootstrap.servers"]})
 
@@ -50,22 +52,21 @@ class KafkaWrapper(BrokerClient):
                              value=json_serializer(value, SerializationContext(topic, MessageField.VALUE)),
                              on_delivery=self.delivery_report)
         except Exception as e:
-            print(e)
+            logger.warning(f"exception occured: {e}")
 
-        print("\nFlushing records...")
         producer.flush()
 
-    def delivery_report(self, err, msg):
-        """
-        Reports the success or failure of a message delivery.
+    def fetch_schema(self, subject_name: str):
+        schema_registry = self.fetch_schema_registry()
+        latest_ver = schema_registry.get_versions(subject_name)[-1]
+        return schema_registry.get_version(subject_name, latest_ver).schema
 
-        args:
-            err (KafkaError): The error that occurred on None on success.
-            msg (Message): The message that was produced or failed.
-        """
+    def fetch_schema_registry(self):
+        return SchemaRegistryClient({"url": self.config["schema.registry.url"]})
 
+    def delivery_report(self, err: KafkaError, msg: KafkaMessage) -> None:
         if err is not None:
-            print("Delivery failed for User record {}: {}".format(msg.key(), err))
+            logger.warning("Delivery failed for User record {}: {}".format(msg.key(), err))
             return
-        print('User record {} successfully produced to {} [{}] at offset {}'.format(
-            msg.key(), msg.topic(), msg.partition(), msg.offset()))
+        logger.info(f"User record {msg.key()} successfully produced"
+                    f"to {msg.topic()} [{msg.partition()}] at offset {msg.offset()}")
