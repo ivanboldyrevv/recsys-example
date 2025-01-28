@@ -32,11 +32,9 @@ class Service:
             args:
                 item_sequence: The sequence of objects with which the user interacted
         """
-        schema = self.read_schema_from_file("json_schemas/item_sequence_json.json")
-
         self.broker_client.produce(topic="item-sequences",
                                    value=item_sequence.model_dump(),
-                                   schema=schema)
+                                   subject_name="itemSequence")
 
         self.key_value_storage.delete(item_sequence.uid)
 
