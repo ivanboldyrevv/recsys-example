@@ -90,7 +90,7 @@ class TestKafkaProducer:
                 pytest.fail(f"failed to delete topic {topic}: {e}")
 
     @staticmethod
-    def open_schema(path):
+    def open_schema(path: str) -> str:
         with open(path) as data:
             raw_schema = data.read()
         return raw_schema
