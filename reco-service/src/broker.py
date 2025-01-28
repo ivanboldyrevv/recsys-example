@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 from confluent_kafka import Producer, KafkaError, Message as KafkaMessage
 from confluent_kafka.serialization import StringSerializer, SerializationContext, MessageField
-from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry import SchemaRegistryClient, Schema
 from confluent_kafka.schema_registry.json_schema import JSONSerializer
 
 
@@ -66,12 +66,12 @@ class KafkaRelay(BrokerClient):
 
         producer.flush()
 
-    def fetch_schema(self, subject_name: str):
+    def fetch_schema(self, subject_name: str) -> Schema:
         schema_registry = self.fetch_schema_registry()
         latest_ver = schema_registry.get_versions(subject_name)[-1]
         return schema_registry.get_version(subject_name, latest_ver).schema
 
-    def fetch_schema_registry(self):
+    def fetch_schema_registry(self) -> SchemaRegistryClient:
         return SchemaRegistryClient({"url": self.config["schema.registry.url"]})
 
     def delivery_report(self, err: KafkaError, msg: KafkaMessage) -> None:
