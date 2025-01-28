@@ -1,8 +1,8 @@
-from kv_storage import KeyValueStorage
-from broker import BrokerClient
+from key_value import Storage
+from messaging import BrokerClient
 
 
-class KeyValueStorageMock(KeyValueStorage):
+class KeyValueStorageMock(Storage):
     def set(self):
         pass
 
