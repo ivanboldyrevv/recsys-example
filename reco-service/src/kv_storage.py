@@ -17,10 +17,6 @@ class KeyValueStorage(ABC):
         pass
 
 
-class MemcachedStorage(KeyValueStorage):
-    pass
-
-
 class RedisStorage(KeyValueStorage):
     def __init__(self, host, port, db):
         self.client = redis.Redis(host=host, port=port, db=db)

@@ -5,7 +5,7 @@ from .request import UserItemSequence
 from .response import UserItemRecommendation, Recommendation
 
 from service import Service
-from broker import KafkaWrapper, KafkaWrapperConfig
+from broker import KafkaWrapper
 from kv_storage import RedisStorage
 
 from settings import get_settings, Settings
@@ -26,9 +26,9 @@ def kv_storage(settings: Settings = Depends(settings)):
 
 
 def broker_client(settings: Settings = Depends(settings)):
-    config = {"bootstrap_server": f"{settings.broker_host}:{settings.broker_port}",
-              "schema_registry_url": f"http://{settings.schemaregisty_host}:{settings.schemaregistry_port}"}
-    return KafkaWrapper(config=KafkaWrapperConfig(**config))
+    config = {"bootstrap.servers": f"{settings.broker_host}:{settings.broker_port}",
+              "schema.registry.url": f"http://{settings.schemaregisty_host}:{settings.schemaregistry_port}"}
+    return KafkaWrapper(config)
 
 
 def fetch_service(broker_client: KafkaWrapper = Depends(broker_client),
@@ -47,21 +47,3 @@ def fetch_personal_recommendation(item_sequence: UserItemSequence,
 def fetch_items(service: Service = Depends(fetch_service)) -> List[Recommendation]:
     data = service.fetch_items()
     return data
-
-
-# for test
-"""
-{
-  "uid": "t-1-e-3-s-4-t",
-  "item_sequence": [
-    {
-      "iid": "22138",
-      "description": "BAKING SET 9 PIECE RETROSPOT"
-    },
-    {
-      "iid": "23254",
-      "description": "CHILDRENS CUTLERY DOLLY GIRL"
-    }
-  ]
-}
-"""

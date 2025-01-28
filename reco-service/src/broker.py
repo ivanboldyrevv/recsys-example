@@ -1,7 +1,6 @@
 from uuid import uuid4
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 
 from confluent_kafka import Producer
 from confluent_kafka.serialization import StringSerializer, SerializationContext, MessageField
@@ -16,79 +15,51 @@ class BrokerClient(ABC):
 
     @abstractmethod
     def produce(self, topic: str, value: Dict[str, Any], schema: str) -> None:
-        ...
-
-
-class RabbitWrapper(BrokerClient):
-    def __init__(self) -> None:
         pass
-
-    def produce(self, topic: str, value: Dict[str, Any], schema: str) -> None:
-        pass
-
-
-@dataclass
-class KafkaWrapperConfig:
-    """
-        Kafka producer config + schema registry config.
-        Kafka client config params: https://github.com/confluentinc/librdkafka/blob/master/CONFIGURATION.md
-        Schema registry client cfg_params: ->
-            ->https://docs.confluent.io/platform/current/clients/confluent-kafka-python/html/index.html#schemaregistryclient
-        + schema_path
-    """
-
-    bootstrap_server: str
-    schema_registry_url: str
-    # security_protocol: str = "PLAINTEXT"
-    ssl_ca_location: Optional[str] = None
-    ssl_certificate_location: Optional[str] = None
-    ssl_key_location: Optional[str] = None
-    ssl_key_password: Optional[str] = None
-
-    basic_auth_user_info: Optional[str] = None
-    basic_auth_credentials_source: Optional[str] = None
-
-    schema: Optional[str] = None
-    schema_subject_name_strategy: Optional[str] = None
 
 
 class KafkaWrapper(BrokerClient):
-    def __init__(self, config: KafkaWrapperConfig):
+    def __init__(self, config: Dict[str, str]):
+        """
+            Interface of an object that is designed
+            to pass messages to a Kafka topic.
+            Takes the schema by subject_name, serializes
+            the data and passes it to the topic.
+
+            config (* indicates a required field):
+                bootstrap.servers*: str = kafka host:port
+                schema.registry.url*: str = schema registry http://host:port
+        """
         self.config = config
 
-    def produce(self, topic: str, value: Dict[str, Any], schema: str) -> None:
-        string_serializer = StringSerializer()
-        schema_registry_client = SchemaRegistryClient({"url": self.config.schema_registry_url})
-        json_serializer = JSONSerializer(schema, schema_registry_client)
+    def produce(self, topic: str, value: Dict[str, Any], subject_name: str) -> None:
+        sc_client = SchemaRegistryClient({"url": self.config["schema.registry.url"]})
+        latest_ver = sc_client.get_versions(subject_name)[-1]
+        response = sc_client.get_version(subject_name, latest_ver)
 
-        producer = Producer({"bootstrap.servers": self.config.bootstrap_server})
+        schema = response.schema
+
+        string_serializer = StringSerializer()
+        json_serializer = JSONSerializer(schema.schema_str, sc_client)
+
+        producer = Producer({"bootstrap.servers": self.config["bootstrap.servers"]})
 
         try:
-            producer.produce(
-                topic=topic,
-                key=string_serializer(str(uuid4())),
-                value=json_serializer(value, SerializationContext(topic, MessageField.VALUE)),
-                on_delivery=self.delivery_report)
+            producer.produce(topic=topic,
+                             key=string_serializer(str(uuid4())),
+                             value=json_serializer(value, SerializationContext(topic, MessageField.VALUE)),
+                             on_delivery=self.delivery_report)
         except Exception as e:
             print(e)
 
         print("\nFlushing records...")
         producer.flush()
 
-    def _to_dict(self, value) -> Dict[str, Any]:
-        """
-            Serialize pydantic object to dict.
-            args:
-                value: pydantic obj
-            return: Dict[Any]
-        """
-        return value.to_dict()
-
     def delivery_report(self, err, msg):
         """
         Reports the success or failure of a message delivery.
 
-        Args:
+        args:
             err (KafkaError): The error that occurred on None on success.
             msg (Message): The message that was produced or failed.
         """

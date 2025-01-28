@@ -2,7 +2,7 @@ import pytest
 import logging
 
 from typing import Optional
-from broker import KafkaWrapper, KafkaWrapperConfig
+from broker import KafkaWrapper
 
 from confluent_kafka import Consumer
 from confluent_kafka.serialization import SerializationContext, MessageField
@@ -50,15 +50,14 @@ class TestKafkaProducer:
 
     @pytest.fixture(scope="class")
     def kafka_client(self) -> KafkaWrapper:
-        test_config = KafkaWrapperConfig(bootstrap_server="localhost:29092",
-                                         schema_registry_url="http://localhost:8085")
-        return KafkaWrapper(test_config)
+        return KafkaWrapper({"bootstrap.servers": "localhost:29092",
+                             "schema.registry.url": "http://localhost:8085"})
 
     def test_produce(self, kafka_client: KafkaWrapper) -> None:
         test_schema = sc_client.get_schema(self.schema_id).schema_str
         test_value = {"id": 1, "description": "test"}
 
-        kafka_client.produce(topic=TOPIC_NAME, value=test_value, schema=test_schema)
+        kafka_client.produce(topic=TOPIC_NAME, value=test_value, subject_name=SUBJECT_NAME)
 
         consumer.subscribe([TOPIC_NAME])
 
