@@ -39,6 +39,16 @@ class KafkaRelay(BrokerClient):
         self.config = config
 
     def produce(self, topic: str, value: Dict[str, Any], subject_name: str) -> None:
+        """
+            Takes the schema from the registry schema.
+            Serializes the message in accordance with
+            the scheme and sends it to the topic
+
+            args:
+                topic: str = kafka topic
+                value: dict[str, str] = message value
+                subject_name: str = schema subject name in schema registry
+        """
         schema = self.fetch_schema(subject_name=subject_name)
 
         string_serializer = StringSerializer()
