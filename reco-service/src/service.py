@@ -1,5 +1,5 @@
-from broker import BrokerClient
-from kv_storage import KeyValueStorage
+from messaging import BrokerClient
+from key_value import Storage
 
 from transport.request import UserItemSequence
 from transport.response import UserItemRecommendation, Recommendation
@@ -8,9 +8,9 @@ from models import ItemModel
 
 
 class Service:
-    def __init__(self, broker_client: BrokerClient, key_value_storage: KeyValueStorage):
+    def __init__(self, broker_client: BrokerClient, key_value_storage: Storage):
         self.broker_client: BrokerClient = broker_client
-        self.key_value_storage: KeyValueStorage = key_value_storage
+        self.key_value_storage: Storage = key_value_storage
 
     def fetch_items(self):
         """

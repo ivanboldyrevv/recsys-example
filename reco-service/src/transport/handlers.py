@@ -5,8 +5,8 @@ from .request import UserItemSequence
 from .response import UserItemRecommendation, Recommendation
 
 from service import Service
-from broker import KafkaRelay
-from kv_storage import RedisStorage
+from messaging import KafkaRelay
+from key_value import RedisClient
 
 from settings import get_settings, Settings
 
@@ -20,9 +20,9 @@ def settings():
 
 
 def kv_storage(settings: Settings = Depends(settings)):
-    return RedisStorage(host=settings.redis_host,
-                        port=settings.redis_port,
-                        db=settings.redis_db)
+    return RedisClient(host=settings.redis_host,
+                       port=settings.redis_port,
+                       db=settings.redis_db)
 
 
 def broker_client(settings: Settings = Depends(settings)):
@@ -32,7 +32,7 @@ def broker_client(settings: Settings = Depends(settings)):
 
 
 def fetch_service(broker_client: KafkaRelay = Depends(broker_client),
-                  key_value_storage: RedisStorage = Depends(kv_storage)):
+                  key_value_storage: RedisClient = Depends(kv_storage)):
     return Service(broker_client=broker_client, key_value_storage=key_value_storage)
 
 
