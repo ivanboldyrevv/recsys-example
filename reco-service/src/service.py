@@ -44,7 +44,7 @@ class Service:
         r = UserItemRecommendation(uid=item_sequence.uid)
 
         for raw_iid in raw_item_ids:
-            from_sql = ItemModel.select().where(ItemModel.item_id == raw_iid.decode()).get()
+            from_sql = ItemModel.select().where(ItemModel.item_id == raw_iid).get()
             r.recommendations.append(
                 Recommendation(iid=from_sql.item_id,
                                description=from_sql.description,

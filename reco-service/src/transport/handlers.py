@@ -20,9 +20,9 @@ def settings():
 
 
 def kv_storage(settings: Settings = Depends(settings)):
-    return RedisClient(host=settings.redis_host,
-                       port=settings.redis_port,
-                       db=settings.redis_db)
+    return RedisClient({"host": settings.redis_host,
+                        "port": settings.redis_port,
+                        "db": settings.redis_db})
 
 
 def broker_client(settings: Settings = Depends(settings)):
